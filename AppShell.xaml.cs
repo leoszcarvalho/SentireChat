@@ -5,6 +5,9 @@
         public AppShell()
         {
             InitializeComponent();
+
+            Routing.RegisterRoute("messages", typeof(Pages.MessagesPage));
+
         }
     }
 }
