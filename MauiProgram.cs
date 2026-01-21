@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SentireChat.Pages;
 using SentireChat.Services;
+using SentireChat.ViewModels;
 
 namespace SentireChat;
 
@@ -22,7 +23,9 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // ===== Services (DI) =====
+        // =========================
+        // Services (core)
+        // =========================
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
@@ -33,15 +36,23 @@ public static class MauiProgram
         })
         .AddHttpMessageHandler<AuthHeaderHandler>();
 
-        // ===== Pages =====
+        // =========================
+        // ViewModels
+        // =========================
+        builder.Services.AddSingleton<LoginViewModel>();
+        builder.Services.AddSingleton<HomeViewModel>();
+        builder.Services.AddTransient<ChatViewModel>();
+
+        // =========================
+        // Pages
+        // =========================
         builder.Services.AddSingleton<LoginPage>();
         builder.Services.AddSingleton<ConversationsPage>();
         builder.Services.AddTransient<MessagesPage>();
 
-        // Se você ainda estiver usando MainPage do template, pode registrar também:
-        // builder.Services.AddSingleton<MainPage>();
-
-        // ===== Shell =====
+        // =========================
+        // Shell
+        // =========================
         builder.Services.AddSingleton<AppShell>();
 
         return builder.Build();

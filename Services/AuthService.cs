@@ -1,57 +1,76 @@
 ﻿using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Maui.ApplicationModel;
 
-namespace SentireChat.Services
+namespace SentireChat.Services;
+
+public class AuthService
 {
-    public class AuthService
+    private readonly IPublicClientApplication _pca;
+
+    private static readonly string[] Scopes =
     {
-        private readonly IPublicClientApplication _pca;
+        AppConfig.ApiScope
+    };
 
-        public AuthService()
-        {
-            _pca = PublicClientApplicationBuilder
-                .Create(AppConfig.ClientId)
-                .WithTenantId(AppConfig.TenantId)
-                .WithRedirectUri(AppConfig.RedirectUri)
-                .Build();
-        }
+    public AuthService()
+    {
+        _pca = PublicClientApplicationBuilder
+            .Create(AppConfig.ClientId)
+            .WithAuthority(AzureCloudInstance.AzurePublic, AppConfig.TenantId)
+            .WithRedirectUri(AppConfig.RedirectUri)
+            .Build();
+    }
 
-        public async Task<bool> IsLoggedAsync()
-            => (await _pca.GetAccountsAsync()).Any();
-
-        public async Task LogoutAsync()
+    public async Task<string> GetTokenAsync(bool interactive)
+    {
+        try
         {
             var accounts = await _pca.GetAccountsAsync();
-            foreach (var acc in accounts)
-                await _pca.RemoveAsync(acc);
-        }
+            var first = accounts.FirstOrDefault();
 
-        public async Task<string> GetTokenAsync(bool interactive)
-        {
-            var scopes = new[] { AppConfig.ApiScope };
-            var account = (await _pca.GetAccountsAsync()).FirstOrDefault();
-
-            try
+            if (!interactive && first != null)
             {
-                if (!interactive && account != null)
-                {
-                    return (await _pca
-                        .AcquireTokenSilent(scopes, account)
-                        .ExecuteAsync()).AccessToken;
-                }
-            }
-            catch (MsalUiRequiredException) { }
+                var silent = await _pca
+                    .AcquireTokenSilent(Scopes, first)
+                    .ExecuteAsync();
 
-            var builder = _pca.AcquireTokenInteractive(scopes)
-                .WithPrompt(Prompt.SelectAccount);
+                return silent.AccessToken;
+            }
+
+            var builder = _pca.AcquireTokenInteractive(Scopes);
 
 #if ANDROID
-        builder = builder.WithParentActivityOrWindow(Platform.CurrentActivity);
+            builder = builder.WithParentActivityOrWindow(
+                Platform.CurrentActivity);
 #endif
 
-            return (await builder.ExecuteAsync()).AccessToken;
+            var result = await builder.ExecuteAsync();
+            return result.AccessToken;
         }
+        catch (MsalUiRequiredException)
+        {
+            // força login interativo
+            var result = await _pca
+                .AcquireTokenInteractive(Scopes)
+#if ANDROID
+                .WithParentActivityOrWindow(Platform.CurrentActivity)
+#endif
+                .ExecuteAsync();
+
+            return result.AccessToken;
+        }
+    }
+
+    public async Task<bool> IsLoggedAsync()
+    {
+        var accounts = await _pca.GetAccountsAsync();
+        return accounts.Any();
+    }
+
+    public async Task LogoutAsync()
+    {
+        var accounts = await _pca.GetAccountsAsync();
+        foreach (var acc in accounts)
+            await _pca.RemoveAsync(acc);
     }
 }
