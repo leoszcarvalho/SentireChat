@@ -6,9 +6,14 @@
     xmlns:pages="clr-namespace:SentireChat.Pages"
     Title="SentireChat">
 
+    <!-- Página inicial: Login -->
     <ShellContent
-        Title="Login"
         Route="login"
         ContentTemplate="{DataTemplate pages:LoginPage}" />
+
+    <!-- Página principal após login -->
+    <ShellContent
+        Route="conversations"
+        ContentTemplate="{DataTemplate pages:ConversationsPage}" />
 
 </Shell>

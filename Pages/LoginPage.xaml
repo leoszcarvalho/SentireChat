@@ -2,7 +2,9 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:SentireChat.ViewModels"
     x:Class="SentireChat.Pages.LoginPage"
+    x:DataType="vm:LoginViewModel"
     Title="SentireChat">
 
     <Grid Padding="24" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="18">
@@ -25,18 +27,19 @@
                        FontSize="18"
                        FontAttributes="Bold" />
 
-                <Label x:Name="StatusLabel"
-                       Text="Faça login para acessar as conversas."
+                <!-- Status vindo do ViewModel -->
+                <Label Text="{Binding StatusText}"
                        Opacity="0.8" />
 
-                <Button x:Name="LoginButton"
-                        Text="Entrar com Microsoft"
-                        Clicked="OnLoginClicked" />
+                <!-- Botão Login -->
+                <Button Text="Entrar com Microsoft"
+                        IsVisible="{Binding ShowLogin}"
+                        Command="{Binding LoginCommand}" />
 
-                <Button x:Name="LogoutButton"
-                        Text="Sair"
-                        IsVisible="False"
-                        Clicked="OnLogoutClicked" />
+                <!-- Botão Logout -->
+                <Button Text="Sair"
+                        IsVisible="{Binding ShowLogout}"
+                        Command="{Binding LogoutCommand}" />
 
             </VerticalStackLayout>
         </Frame>
@@ -52,14 +55,23 @@
                FontSize="12" />
 
         <!-- Overlay de loading -->
-        <Grid x:Name="LoadingOverlay"
-              IsVisible="False"
+        <Grid IsVisible="{Binding IsBusy}"
               BackgroundColor="#80000000"
               Grid.RowSpan="4">
-            <Frame Padding="18" CornerRadius="16" VerticalOptions="Center" HorizontalOptions="Center">
-                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+
+            <Frame Padding="18"
+                   CornerRadius="16"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center">
+
+                <VerticalStackLayout Spacing="10"
+                                     HorizontalOptions="Center">
+
                     <ActivityIndicator IsRunning="True" />
-                    <Label x:Name="LoadingText" Text="Carregando..." />
+
+                    <!-- Agora vem do ViewModel -->
+                    <Label Text="{Binding BusyText}" />
+
                 </VerticalStackLayout>
             </Frame>
         </Grid>

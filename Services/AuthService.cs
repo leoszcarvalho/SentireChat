@@ -3,14 +3,11 @@ using Microsoft.Maui.ApplicationModel;
 
 namespace SentireChat.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly IPublicClientApplication _pca;
 
-    private static readonly string[] Scopes =
-    {
-        AppConfig.ApiScope
-    };
+    private static readonly string[] Scopes = { AppConfig.ApiScope };
 
     public AuthService()
     {
@@ -21,51 +18,48 @@ public class AuthService
             .Build();
     }
 
-    public async Task<string> GetTokenAsync(bool interactive)
+    public async Task<AuthResult> TrySilentAsync()
     {
         try
         {
-            var accounts = await _pca.GetAccountsAsync();
-            var first = accounts.FirstOrDefault();
+            var account = (await _pca.GetAccountsAsync()).FirstOrDefault();
+            if (account is null)
+                return new AuthResult(false, Error: "Sem conta logada.");
 
-            if (!interactive && first != null)
-            {
-                var silent = await _pca
-                    .AcquireTokenSilent(Scopes, first)
-                    .ExecuteAsync();
-
-                return silent.AccessToken;
-            }
-
-            var builder = _pca.AcquireTokenInteractive(Scopes);
-
-#if ANDROID
-            builder = builder.WithParentActivityOrWindow(
-                Platform.CurrentActivity);
-#endif
-
-            var result = await builder.ExecuteAsync();
-            return result.AccessToken;
+            var silent = await _pca.AcquireTokenSilent(Scopes, account).ExecuteAsync();
+            return new AuthResult(true, silent.AccessToken);
         }
         catch (MsalUiRequiredException)
         {
-            // força login interativo
-            var result = await _pca
-                .AcquireTokenInteractive(Scopes)
-#if ANDROID
-                .WithParentActivityOrWindow(Platform.CurrentActivity)
-#endif
-                .ExecuteAsync();
+            return new AuthResult(false, Error: "Login interativo necessário.");
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult(false, Error: ex.Message);
+        }
+    }
 
-            return result.AccessToken;
+    public async Task<AuthResult> LoginAsync()
+    {
+        try
+        {
+            var builder = _pca.AcquireTokenInteractive(Scopes);
+
+#if ANDROID
+            builder = builder.WithParentActivityOrWindow(Platform.CurrentActivity);
+#endif
+
+            var result = await builder.ExecuteAsync();
+            return new AuthResult(true, result.AccessToken);
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult(false, Error: ex.Message);
         }
     }
 
     public async Task<bool> IsLoggedAsync()
-    {
-        var accounts = await _pca.GetAccountsAsync();
-        return accounts.Any();
-    }
+        => (await _pca.GetAccountsAsync()).Any();
 
     public async Task LogoutAsync()
     {

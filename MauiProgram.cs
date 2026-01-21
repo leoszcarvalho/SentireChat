@@ -24,9 +24,9 @@ public static class MauiProgram
 #endif
 
         // =========================
-        // Services (core)
+        // Services (DI)
         // =========================
-        builder.Services.AddSingleton<AuthService>();
+        builder.Services.AddSingleton<IAuthService, AuthService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
         builder.Services.AddHttpClient<ApiClient>(client =>
@@ -37,14 +37,15 @@ public static class MauiProgram
         .AddHttpMessageHandler<AuthHeaderHandler>();
 
         // =========================
-        // ViewModels
+        // ViewModels (DI)
         // =========================
         builder.Services.AddSingleton<LoginViewModel>();
-        builder.Services.AddSingleton<HomeViewModel>();
-        builder.Services.AddTransient<ChatViewModel>();
+        builder.Services.AddSingleton<ChatViewModel>();
+        builder.Services.AddTransient<HomeViewModel>();
 
         // =========================
-        // Pages
+        // Pages (DI)
+        // (as Pages recebem o ViewModel via construtor)
         // =========================
         builder.Services.AddSingleton<LoginPage>();
         builder.Services.AddSingleton<ConversationsPage>();

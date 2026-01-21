@@ -1,27 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
-using System.Text;
+﻿using System.Net.Http.Headers;
 
-namespace SentireChat.Services
+namespace SentireChat.Services;
+
+public class AuthHeaderHandler : DelegatingHandler
 {
-    public class AuthHeaderHandler : DelegatingHandler
+    private readonly IAuthService _auth;
+
+    public AuthHeaderHandler(IAuthService auth)
     {
-        private readonly AuthService _auth;
+        _auth = auth;
+    }
 
-        public AuthHeaderHandler(AuthService auth)
-        {
-            _auth = auth;
-        }
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var result = await _auth.TrySilentAsync();
 
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken cancellationToken)
+        if (result.Success && !string.IsNullOrWhiteSpace(result.AccessToken))
         {
-            var token = await _auth.GetTokenAsync(interactive: false);
             request.Headers.Authorization =
-                new AuthenticationHeaderValue("Bearer", token);
-
-            return await base.SendAsync(request, cancellationToken);
+                new AuthenticationHeaderValue("Bearer", result.AccessToken);
         }
+
+        return await base.SendAsync(request, cancellationToken);
     }
 }

@@ -8,9 +8,8 @@ namespace SentireChat
         {
             InitializeComponent();
 
-            Routing.RegisterRoute("messages", typeof(Pages.MessagesPage));
-            Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
-            Routing.RegisterRoute(nameof(ChatPage), typeof(ChatPage));
+            Routing.RegisterRoute("conversations", typeof(ConversationsPage));
+            Routing.RegisterRoute("messages", typeof(MessagesPage));
 
         }
     }
