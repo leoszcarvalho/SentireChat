@@ -23,12 +23,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // =========================
-        // Services (DI)
-        // =========================
+        // Auth
         builder.Services.AddSingleton<IAuthService, AuthService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
+        // Http + ApiClient
         builder.Services.AddHttpClient<ApiClient>(client =>
         {
             client.BaseAddress = new Uri(AppConfig.ApiBaseUrl);
@@ -36,24 +35,17 @@ public static class MauiProgram
         })
         .AddHttpMessageHandler<AuthHeaderHandler>();
 
-        // =========================
-        // ViewModels (DI)
-        // =========================
-        builder.Services.AddSingleton<LoginViewModel>();
-        builder.Services.AddSingleton<ChatViewModel>();
-        builder.Services.AddTransient<HomeViewModel>();
+        // ViewModels
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<ConversationsViewModel>();
+        builder.Services.AddTransient<MessagesViewModel>();
 
-        // =========================
-        // Pages (DI)
-        // (as Pages recebem o ViewModel via construtor)
-        // =========================
+        // Pages
         builder.Services.AddSingleton<LoginPage>();
-        builder.Services.AddSingleton<ConversationsPage>();
+        builder.Services.AddTransient<ConversationsPage>();
         builder.Services.AddTransient<MessagesPage>();
 
-        // =========================
         // Shell
-        // =========================
         builder.Services.AddSingleton<AppShell>();
 
         return builder.Build();
