@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SentireChat.Models
 {
-    public class MessageItem
+    public class MessageItemDto
     {
         public int Id { get; set; }
         public int ConversationId { get; set; }

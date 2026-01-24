@@ -12,11 +12,11 @@ public class ApiClient
         _http = http;
     }
 
-    public Task<List<ConversationSummary>?> GetConversationsAsync()
-        => _http.GetFromJsonAsync<List<ConversationSummary>>("api/conversations");
+    public Task<List<ConversationSummaryDto>?> GetConversationsAsync()
+        => _http.GetFromJsonAsync<List<ConversationSummaryDto>>("api/conversations");
 
-    public Task<List<MessageItem>?> GetMessagesAsync(int conversationId)
-        => _http.GetFromJsonAsync<List<MessageItem>>($"api/conversations/{conversationId}/messages");
+    public Task<List<MessageItemDto>?> GetMessagesAsync(int conversationId)
+        => _http.GetFromJsonAsync<List<MessageItemDto>>($"api/conversations/{conversationId}/messages");
 
     public async Task SendReplyAsync(int conversationId, string text)
     {

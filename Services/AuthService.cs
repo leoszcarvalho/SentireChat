@@ -49,6 +49,11 @@ public class AuthService : IAuthService
             builder = builder.WithParentActivityOrWindow(Platform.CurrentActivity);
 #endif
 
+#if DEBUG
+            // Evita abrir Custom Tabs/Browser e reduzir chance do VS perder o debugger
+            builder = builder.WithUseEmbeddedWebView(true);
+#endif
+
             var result = await builder.ExecuteAsync();
             return new AuthResult(true, result.AccessToken);
         }
